@@ -8,6 +8,7 @@ pkgbase = mmu-vpn-tray
 	license = custom
 	depends = python
 	depends = python-gobject
+	depends = libayatana-appindicator-glib
 	depends = openfortivpn
 	depends = libnotify
 	depends = xdg-utils
@@ -16,7 +17,7 @@ pkgbase = mmu-vpn-tray
 	depends = procps-ng
 	optdepends = hyprland: Wayland compositor
 	optdepends = waybar: Status bar with SNI tray support
-	source = git+https://github.com/nawfalmrouyan/mmu-vpn-tray.git#tag=v1.0.0
+	source = mmu-vpn-tray-1.0.0.tar.gz::https://github.com/nawfalmrouyan/mmu-vpn-tray/archive/v1.0.0.tar.gz
 	sha256sums = SKIP
 
 pkgname = mmu-vpn-tray

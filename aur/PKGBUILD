@@ -9,6 +9,7 @@ license=('custom')
 depends=(
     'python'
     'python-gobject'
+    'libayatana-appindicator-glib'
     'openfortivpn'
     'libnotify'
     'xdg-utils'
@@ -21,11 +22,18 @@ optdepends=(
     'waybar: Status bar with SNI tray support'
 )
 install="${pkgname}.install"
-source=("git+${url}.git#tag=v${pkgver}")
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
 sha256sums=('SKIP')
 
 package() {
-    cd "${srcdir}/${pkgname}"
+    cd "${srcdir}"
+    if [ -d "${pkgname}-${pkgver}" ]; then
+        cd "${pkgname}-${pkgver}"
+    elif [ -d "${pkgname}-v${pkgver}" ]; then
+        cd "${pkgname}-v${pkgver}"
+    elif [ -d "${pkgname}" ]; then
+        cd "${pkgname}"
+    fi
 
     install -Dm755 mmu-vpn-tray.py "${pkgdir}/usr/bin/mmu-vpn-tray"
     install -Dm644 mmu-vpn-tray.desktop "${pkgdir}/usr/share/applications/mmu-vpn-tray.desktop"

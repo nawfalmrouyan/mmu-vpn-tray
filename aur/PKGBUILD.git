@@ -9,6 +9,7 @@ license=('custom')
 depends=(
     'python'
     'python-gobject'
+    'libayatana-appindicator-glib'
     'openfortivpn'
     'libnotify'
     'xdg-utils'

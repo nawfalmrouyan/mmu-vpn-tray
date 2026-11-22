@@ -25,6 +25,7 @@ Built with Python and GLib/GIO, `mmu-vpn-tray` implements the `org.kde.StatusNot
 | :--- | :--- | :--- |
 | **Python 3** | `python` | Script execution runtime |
 | **PyGObject** | `python-gobject` | GLib, Gio DBus, and event loop bindings |
+| **Ayatana Indicators (GLib)** | `libayatana-appindicator-glib` | Ayatana AppIndicator GLib library |
 | **OpenFortiVPN** | `openfortivpn` | Fortinet SSL-VPN client with SAML support |
 | **Libnotify** | `libnotify` | Desktop notifications (`notify-send`) |
 | **XDG Utils** | `xdg-utils` | Opening the default browser (`xdg-open`) |
@@ -32,10 +33,12 @@ Built with Python and GLib/GIO, `mmu-vpn-tray` implements the `org.kde.StatusNot
 | **Systemd** | `systemd` | Split-DNS management via `resolvectl` |
 | **Procps-ng** | `procps-ng` | Process monitoring and termination (`pkill`) |
 
-Install all runtime dependencies on Arch Linux with:
+Install all runtime dependencies with your preferred AUR helper:
 
 ```bash
-sudo pacman -S python python-gobject openfortivpn libnotify xdg-utils sudo systemd procps-ng
+paru -S python python-gobject libayatana-appindicator-glib openfortivpn libnotify xdg-utils sudo systemd procps-ng
+# or
+yay -S python python-gobject libayatana-appindicator-glib openfortivpn libnotify xdg-utils sudo systemd procps-ng
 ```
 
 ---

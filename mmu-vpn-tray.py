@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# dependencies: openfortivpn python-gobject libnotify xdg-utils sudo systemd procps-ng
+# dependencies: openfortivpn python-gobject libayatana-appindicator-glib libnotify xdg-utils sudo systemd procps-ng
 
 import fcntl
 import os
