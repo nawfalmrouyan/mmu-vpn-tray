@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# 100% vibe coded ✨
 # dependencies: openfortivpn python-gobject libayatana-appindicator-glib libnotify xdg-utils sudo systemd procps-ng
 
 import fcntl

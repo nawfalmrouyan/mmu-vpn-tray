@@ -1,5 +1,8 @@
 # MMU VPN Tray (`mmu-vpn-tray`)
 
+> [!NOTE]
+> This project is 100% vibe coded. ✨
+
 A lightweight, native system tray client for Multimedia University (MMU) Fortinet SSL-VPN with SAML 2.0 Single Sign-On (SSO) authentication.
 
 Built with Python and GLib/GIO, `mmu-vpn-tray` implements the `org.kde.StatusNotifierItem` (SNI) and `com.canonical.dbusmenu` specifications. It integrates cleanly with Wayland compositors (such as Hyprland, Sway) and status bars (such as Waybar) as well as traditional X11 desktop environments without requiring heavy toolkit dependencies.
@@ -312,4 +315,4 @@ resolvectl query intranet.mmu.edu.my
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the BSD 3-Clause License. See [LICENSE](file:///home/opal/Projects/mmu-vpn-tray/LICENSE) for details.
