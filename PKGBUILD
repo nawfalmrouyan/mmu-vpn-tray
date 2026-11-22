@@ -27,11 +27,11 @@ optdepends=(
 provides=('mmu-vpn-tray')
 conflicts=('mmu-vpn-tray')
 install="mmu-vpn-tray.install"
-source=("git+${url}.git")
+source=("${pkgname}::git+${url}.git")
 sha256sums=('SKIP')
 
 pkgver() {
-    cd "${srcdir}/${pkgname%-git}"
+    cd "${srcdir}/${pkgname}"
     if git describe --long --tags >/dev/null 2>&1; then
         git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
     else
@@ -40,7 +40,7 @@ pkgver() {
 }
 
 package() {
-    cd "${srcdir}/${pkgname%-git}"
+    cd "${srcdir}/${pkgname}"
 
     install -Dm755 mmu-vpn-tray.py "${pkgdir}/usr/bin/mmu-vpn-tray"
     install -Dm644 mmu-vpn-tray.desktop "${pkgdir}/usr/share/applications/mmu-vpn-tray.desktop"

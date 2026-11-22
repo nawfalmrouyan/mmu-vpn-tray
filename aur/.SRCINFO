@@ -20,7 +20,7 @@ pkgbase = mmu-vpn-tray-git
 	optdepends = waybar: Status bar with SNI tray support
 	provides = mmu-vpn-tray
 	conflicts = mmu-vpn-tray
-	source = git+https://github.com/nawfalmrouyan/mmu-vpn-tray.git
+	source = mmu-vpn-tray-git::git+https://github.com/nawfalmrouyan/mmu-vpn-tray.git
 	sha256sums = SKIP
 
 pkgname = mmu-vpn-tray-git
