@@ -1,0 +1,8 @@
+# Sudoers permissions for MMU VPN Tray
+# Allows managing openfortivpn, terminating the connection, and setting split-DNS routing without password prompt.
+
+# For members of the wheel group:
+%wheel ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my
+
+# Alternatively, for a specific user account (e.g. opal):
+# opal ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my

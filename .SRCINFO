@@ -1,0 +1,22 @@
+pkgbase = mmu-vpn-tray
+	pkgdesc = Tray StatusNotifierItem for Multimedia University Fortinet SAML VPN
+	pkgver = 1.0.0
+	pkgrel = 1
+	url = https://github.com/nawfalmrouyan/mmu-vpn-tray
+	install = mmu-vpn-tray.install
+	arch = any
+	license = custom
+	depends = python
+	depends = python-gobject
+	depends = openfortivpn
+	depends = libnotify
+	depends = xdg-utils
+	depends = sudo
+	depends = systemd
+	depends = procps-ng
+	optdepends = hyprland: Wayland compositor
+	optdepends = waybar: Status bar with SNI tray support
+	source = git+https://github.com/nawfalmrouyan/mmu-vpn-tray.git#tag=v1.0.0
+	sha256sums = SKIP
+
+pkgname = mmu-vpn-tray

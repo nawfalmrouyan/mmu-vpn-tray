@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=MMU VPN Tray
+GenericName=VPN Tray Client
+Comment=System tray client for Multimedia University (MMU) Fortinet SAML VPN
+Exec=mmu-vpn-tray
+Icon=mmu-vpn-tray
+Terminal=false
+Type=Application
+Categories=Network;Utility;
+Keywords=vpn;fortinet;fortigate;mmu;tray;saml;
+StartupNotify=false

@@ -1,0 +1,28 @@
+post_install() {
+    cat << 'EOF'
+================================================================================
+MMU VPN Tray - Post-Installation Setup
+================================================================================
+1. User Configuration:
+   Create the config directory and copy the sample configuration:
+     mkdir -p ~/.config/openfortivpn
+     cp /usr/share/doc/mmu-vpn-tray/mmu-vpn.conf.example ~/.config/openfortivpn/mmu-vpn.conf
+     chmod 600 ~/.config/openfortivpn/mmu-vpn.conf
+
+2. Sudoers Permissions (required for openfortivpn, pkill & resolvectl):
+   Copy or link the sudoers snippet to /etc/sudoers.d/:
+     sudo install -Dm440 /usr/share/doc/mmu-vpn-tray/openfortivpn.sudoers.example /etc/sudoers.d/openfortivpn
+   Ensure your user is in the 'wheel' group or edit the rule for your username.
+
+3. Autostart in Hyprland (hyprlua):
+   Add to your startup commands in ~/.config/hypr/hyprland.lua:
+     hl.on("hyprland.start", function()
+         hl.exec_cmd("mmu-vpn-tray")
+     end)
+================================================================================
+EOF
+}
+
+post_upgrade() {
+    post_install
+}
