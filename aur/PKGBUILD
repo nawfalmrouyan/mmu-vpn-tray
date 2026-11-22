@@ -1,8 +1,8 @@
 # Maintainer: Nawfal Mrouyan <https://github.com/nawfalmrouyan>
-pkgname=mmu-vpn-tray
-pkgver=1.0.0
+pkgname=mmu-vpn-tray-git
+pkgver=r1.0.0
 pkgrel=1
-pkgdesc="Tray StatusNotifierItem for Multimedia University Fortinet SAML VPN"
+pkgdesc="Tray StatusNotifierItem for Multimedia University Fortinet SAML VPN (development git branch)"
 arch=('any')
 url="https://github.com/nawfalmrouyan/mmu-vpn-tray"
 license=('custom')
@@ -17,23 +17,30 @@ depends=(
     'systemd'
     'procps-ng'
 )
+makedepends=(
+    'git'
+)
 optdepends=(
     'hyprland: Wayland compositor'
     'waybar: Status bar with SNI tray support'
 )
-install="${pkgname}.install"
-source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
+provides=('mmu-vpn-tray')
+conflicts=('mmu-vpn-tray')
+install="mmu-vpn-tray.install"
+source=("git+${url}.git")
 sha256sums=('SKIP')
 
-package() {
-    cd "${srcdir}"
-    if [ -d "${pkgname}-${pkgver}" ]; then
-        cd "${pkgname}-${pkgver}"
-    elif [ -d "${pkgname}-v${pkgver}" ]; then
-        cd "${pkgname}-v${pkgver}"
-    elif [ -d "${pkgname}" ]; then
-        cd "${pkgname}"
+pkgver() {
+    cd "${srcdir}/${pkgname%-git}"
+    if git describe --long --tags >/dev/null 2>&1; then
+        git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+    else
+        printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
     fi
+}
+
+package() {
+    cd "${srcdir}/${pkgname%-git}"
 
     install -Dm755 mmu-vpn-tray.py "${pkgdir}/usr/bin/mmu-vpn-tray"
     install -Dm644 mmu-vpn-tray.desktop "${pkgdir}/usr/share/applications/mmu-vpn-tray.desktop"

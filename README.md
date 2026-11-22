@@ -47,18 +47,12 @@ yay -S python python-gobject libayatana-appindicator-glib openfortivpn libnotify
 
 ### From Arch User Repository (AUR)
 
-Using an AUR helper such as `paru` or `yay`:
-
-```bash
-paru -S mmu-vpn-tray
-# or
-yay -S mmu-vpn-tray
-```
-
-For the latest development commit from Git:
+Install the `-git` package using your preferred AUR helper:
 
 ```bash
 paru -S mmu-vpn-tray-git
+# or
+yay -S mmu-vpn-tray-git
 ```
 
 ### Manual Build with `makepkg`
