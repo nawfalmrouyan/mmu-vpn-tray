@@ -72,42 +72,41 @@ makepkg -si
 
 ## Configuration
 
-### 1. OpenFortiVPN Configuration (`~/.config/openfortivpn/mmu-vpn.conf`)
+### 1. OpenFortiVPN Configuration (`/etc/openfortivpn/mmu-vpn.conf`)
 
-`mmu-vpn-tray` reads its connection settings from `~/.config/openfortivpn/mmu-vpn.conf`.
+The package installs a working configuration at `/etc/openfortivpn/mmu-vpn.conf`, so no manual setup is required:
 
-1. Create the configuration directory:
-   ```bash
-   mkdir -p ~/.config/openfortivpn
-   ```
+```ini
+# MMU Fortinet SSL-VPN OpenFortiVPN Configuration
+host = vpn.mmu.edu.my
+port = 443
 
-2. Create `~/.config/openfortivpn/mmu-vpn.conf` with the following content:
-   ```ini
-   # MMU Fortinet SSL-VPN OpenFortiVPN Configuration
-   host = vpn.mmu.edu.my
-   port = 443
+# Enable SAML Single Sign-On
+saml-login = 1
 
-   # Enable SAML Single Sign-On
-   saml-login = 1
+# DNS settings:
+# set-dns = 0 prevents openfortivpn from overriding your global resolvers.
+# Split-DNS is configured dynamically by mmu-vpn-tray using systemd-resolved.
+set-dns = 0
+use-resolvconf = 1
+pppd-use-peerdns = 1
 
-   # DNS settings:
-   # set-dns = 0 prevents openfortivpn from overriding your global resolvers.
-   # Split-DNS is configured dynamically by mmu-vpn-tray using systemd-resolved.
-   set-dns = 0
-   use-resolvconf = 1
-   pppd-use-peerdns = 1
+# Routing settings:
+# set-routes = 1 enables routing for campus networks provided by the gateway.
+# half-internet-routes = 0 ensures your normal internet traffic does NOT route through the VPN.
+set-routes = 1
+half-internet-routes = 0
+```
 
-   # Routing settings:
-   # set-routes = 1 enables routing for campus networks provided by the gateway.
-   # half-internet-routes = 0 ensures your normal internet traffic does NOT route through the VPN.
-   set-routes = 1
-   half-internet-routes = 0
-   ```
+The file is marked as a pacman `backup` file, so local edits survive upgrades (as `.pacnew` when the packaged version changes).
 
-3. Secure the configuration file permissions:
-   ```bash
-   chmod 600 ~/.config/openfortivpn/mmu-vpn.conf
-   ```
+To override the system configuration for a single user, copy it into your home directory. `mmu-vpn-tray` prefers the per-user file when it exists:
+
+```bash
+mkdir -p ~/.config/openfortivpn
+cp /etc/openfortivpn/mmu-vpn.conf ~/.config/openfortivpn/mmu-vpn.conf
+chmod 600 ~/.config/openfortivpn/mmu-vpn.conf
+```
 
 #### Configuration Options Explained
 
@@ -124,29 +123,37 @@ makepkg -si
 
 ### 2. Sudoers Configuration (`/etc/sudoers.d/openfortivpn`)
 
-Connecting and disconnecting the VPN, as well as updating interface DNS domains via `resolvectl`, require elevated privileges. To allow `mmu-vpn-tray` to run smoothly in the background without password prompts, configure `/etc/sudoers.d/openfortivpn`.
+Connecting and disconnecting the VPN, as well as updating interface DNS domains via `resolvectl`, require elevated privileges. The package installs `/etc/sudoers.d/openfortivpn` (mode `0440`) so `mmu-vpn-tray` can run these commands without password prompts.
 
-1. Create `/etc/sudoers.d/openfortivpn` using `visudo`:
-   ```bash
-   sudo visudo -f /etc/sudoers.d/openfortivpn
-   ```
+The installed rule applies to members of the `wheel` group:
 
-2. Add the configuration:
+```sudoers
+%wheel ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my
+```
 
-   **For members of the `wheel` group (recommended):**
-   ```sudoers
-   %wheel ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my
-   ```
+Make sure your account is in `wheel`:
 
-   **Alternatively, for a specific user account:**
-   ```sudoers
-   your_username ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my
-   ```
+```bash
+groups | grep -qw wheel || sudo usermod -aG wheel "$USER"
+```
 
-3. Ensure strict file permissions (required by sudo):
-   ```bash
-   sudo chmod 440 /etc/sudoers.d/openfortivpn
-   ```
+To allow a specific account instead, edit the installed file with `visudo`:
+
+```bash
+sudo visudo -f /etc/sudoers.d/openfortivpn
+```
+
+Then replace the `%wheel` line with:
+
+```sudoers
+your_username ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my
+```
+
+Verify the file at any time with:
+
+```bash
+sudo visudo -cf /etc/sudoers.d/openfortivpn
+```
 
 #### Why These Sudo Permissions Are Required
 

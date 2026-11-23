@@ -11,7 +11,9 @@ import socket
 import struct
 from gi.repository import Gio, GLib
 
-CONFIG = os.path.expanduser("~/.config/openfortivpn/mmu-vpn.conf")
+_user_config = os.path.expanduser("~/.config/openfortivpn/mmu-vpn.conf")
+_system_config = "/etc/openfortivpn/mmu-vpn.conf"
+CONFIG = _user_config if os.path.exists(_user_config) else _system_config
 FALLBACK_VPN_URL = "https://vpn.mmu.edu.my:443/remote/saml/start?redirect=1"
 VPN_BIN = shutil.which("openfortivpn") or "/usr/bin/openfortivpn"
 LOG_FILE = "/tmp/openfortivpn-mmu.log"
