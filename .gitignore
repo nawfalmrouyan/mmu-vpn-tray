@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+
+# makepkg build artifacts
+pkg/
+src/
+mmu-vpn-tray-git/
+*.pkg.tar.zst

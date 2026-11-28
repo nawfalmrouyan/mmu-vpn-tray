@@ -74,7 +74,17 @@ makepkg -si
 
 ### 1. OpenFortiVPN Configuration (`/etc/openfortivpn/mmu-vpn.conf`)
 
-The package installs a working configuration at `/etc/openfortivpn/mmu-vpn.conf`, so no manual setup is required:
+The package installs a root-owned configuration at `/etc/openfortivpn/mmu-vpn.conf`. `mmu-vpn-tray` prefers this file so passwordless sudo can pin `openfortivpn` to a config the invoking user cannot modify.
+
+> [!IMPORTANT]
+> Keep this file owned by `root` and not writable by your user. `openfortivpn` supports options such as `pppd-plugin` and `pppd-log`, so a user-writable config combined with passwordless sudo is equivalent to giving that user root access.
+
+For a manual build, install it with:
+```bash
+sudo install -Dm644 openfortivpn/mmu-vpn.conf /etc/openfortivpn/mmu-vpn.conf
+```
+
+The file contains:
 
 ```ini
 # MMU Fortinet SSL-VPN OpenFortiVPN Configuration
@@ -98,15 +108,15 @@ set-routes = 1
 half-internet-routes = 0
 ```
 
-The file is marked as a pacman `backup` file, so local edits survive upgrades (as `.pacnew` when the packaged version changes).
+#### Per-user configuration (development only)
 
-To override the system configuration for a single user, copy it into your home directory. `mmu-vpn-tray` prefers the per-user file when it exists:
+When no system config exists, the tray falls back to `~/.config/openfortivpn/mmu-vpn.conf`. You can also point it at an explicit file with `MMU_VPN_CONFIG`:
 
 ```bash
-mkdir -p ~/.config/openfortivpn
-cp /etc/openfortivpn/mmu-vpn.conf ~/.config/openfortivpn/mmu-vpn.conf
-chmod 600 ~/.config/openfortivpn/mmu-vpn.conf
+MMU_VPN_CONFIG="$PWD/openfortivpn/mmu-vpn.conf" ./mmu-vpn-tray.py
 ```
+
+If you use a non-default path, update the sudoers rule to match that exact path. Make the file root-owned before granting passwordless sudo on it.
 
 #### Configuration Options Explained
 
@@ -131,11 +141,21 @@ The installed rule applies to members of the `wheel` group:
 %wheel ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my
 ```
 
-Make sure your account is in `wheel`:
+   **For members of the `wheel` group (recommended):**
+   ```sudoers
+   Defaults!/usr/bin/openfortivpn env_keep -= "https_proxy http_proxy all_proxy HTTPS_PROXY HTTP_PROXY ALL_PROXY"
+   %wheel ALL=(root) NOPASSWD: /usr/bin/openfortivpn -c /etc/openfortivpn/mmu-vpn.conf --saml-login, \
+                               /usr/bin/pkill -INT -x openfortivpn, \
+                               /usr/bin/resolvectl domain ppp0 mmu.edu.my
+   ```
 
-```bash
-groups | grep -qw wheel || sudo usermod -aG wheel "$USER"
-```
+   **Alternatively, for a specific user account:**
+   ```sudoers
+   Defaults!/usr/bin/openfortivpn env_keep -= "https_proxy http_proxy all_proxy HTTPS_PROXY HTTP_PROXY ALL_PROXY"
+   your_username ALL=(root) NOPASSWD: /usr/bin/openfortivpn -c /etc/openfortivpn/mmu-vpn.conf --saml-login, \
+                              /usr/bin/pkill -INT -x openfortivpn, \
+                              /usr/bin/resolvectl domain ppp0 mmu.edu.my
+   ```
 
 To allow a specific account instead, edit the installed file with `visudo`:
 
@@ -157,9 +177,12 @@ sudo visudo -cf /etc/sudoers.d/openfortivpn
 
 #### Why These Sudo Permissions Are Required
 
-- `/usr/bin/openfortivpn`: Needed to create the PPP tunnel interface (`ppp0`) and modify kernel routing tables.
-- `/usr/bin/pkill -INT openfortivpn`: Sends a graceful `SIGINT` signal to openfortivpn so it can tear down routes and close the session cleanly.
+- `/usr/bin/openfortivpn -c /etc/openfortivpn/mmu-vpn.conf --saml-login`: Needed to create the PPP tunnel interface (`ppp0`) and modify kernel routing tables. The exact `-c` path is pinned so the user cannot pass `pppd-plugin`, `pppd-log`, or another privileged openfortivpn option through a different config.
+- `/usr/bin/pkill -INT -x openfortivpn`: Sends a graceful `SIGINT` signal to `openfortivpn` so it can tear down routes and close the session cleanly. `-x` prevents matching similarly named helper processes.
 - `/usr/bin/resolvectl domain ppp0 mmu.edu.my`: Configures `systemd-resolved` to route DNS queries matching `mmu.edu.my` to the VPN DNS servers on `ppp0`.
+
+> [!WARNING]
+> Do not replace the exact rules above with wildcards such as `/usr/bin/openfortivpn *` or `/usr/bin/pkill *`. Sudo wildcards can match additional arguments and would let any member of `wheel` run privileged commands with attacker-controlled options.
 
 ---
 
@@ -174,7 +197,7 @@ MMU SSL-VPN uses SAML 2.0 Single Sign-On (SSO) integrated with Microsoft 365. `m
 Spawns: openfortivpn --saml-login
        │
        ▼
-Extracts SAML Auth URL from /tmp/openfortivpn-mmu.log
+Extracts SAML Auth URL from $XDG_RUNTIME_DIR/mmu-vpn-tray/openfortivpn.log
        │
        ▼
 Calls: xdg-open <SAML_URL> (launches Default Browser)
@@ -196,13 +219,13 @@ Tray Icon changes to Connected + Desktop Notification
 
 1. **Initiate Connection**: Click the tray icon and select **Connect** (or left-click the icon).
 2. **Background Process**: `mmu-vpn-tray` executes `openfortivpn` in the background and sets its status to **Authenticating...** (yellow shield icon).
-3. **Browser Invocation**: The client continuously scans the log (`/tmp/openfortivpn-mmu.log`) for the SAML portal address. Once detected, it invokes `xdg-open`, opening the SAML URL in your default web browser (e.g. Firefox, Chromium, Zen, Brave, Chrome).
+3. **Browser Invocation**: The client scans its private log (`$XDG_RUNTIME_DIR/mmu-vpn-tray/openfortivpn.log`) for the SAML portal address. Only HTTPS URLs for the configured VPN host are accepted. Once detected, it invokes `xdg-open`, opening the SAML URL in your default web browser (e.g. Firefox, Chromium, Zen, Brave, Chrome).
 4. **Sign-In**: Log in using your MMU credentials (`@mmu.edu.my` or `@student.mmu.edu.my`) and approve any multi-factor authentication (MFA) prompts.
 5. **Tunnel Handshake**: Upon successful browser authentication, FortiGate passes the session token back to openfortivpn. The PPP tunnel interface `ppp0` is established.
 6. **Automatic Split-DNS**: Once `mmu-vpn-tray` verifies the `ppp0` interface is active, it runs `resolvectl domain ppp0 mmu.edu.my`.
 7. **Connected**: The tray icon turns green and a desktop notification announces: `Connected (mmu.edu.my routed)`.
 
-> **Note**: If your browser does not open automatically, check `/tmp/openfortivpn-mmu.log` for the login URL or open the fallback address: `https://vpn.mmu.edu.my:443/remote/saml/start?redirect=1`.
+> **Note**: If your browser does not open automatically, check the log file for the login URL or open the fallback address: `https://vpn.mmu.edu.my:443/remote/saml/start?redirect=1`.
 
 ---
 
@@ -296,10 +319,10 @@ mmu-vpn-tray
 
 ### Checking Logs
 
-The OpenFortiVPN connection log is stored at:
+The OpenFortiVPN connection log is stored in the tray's private runtime directory (mode `0700`, log mode `0600`):
 
 ```bash
-cat /tmp/openfortivpn-mmu.log
+cat "${XDG_RUNTIME_DIR:-$HOME/.cache}/mmu-vpn-tray/openfortivpn.log"
 ```
 
 ### Verifying Split-DNS
@@ -320,6 +343,20 @@ resolvectl query intranet.mmu.edu.my
 
 ---
 
+## Security Notes
+
+- **No shell interpolation**: `openfortivpn`, `pkill`, `resolvectl`, and `xdg-open` are launched with argument arrays, never through `/bin/sh -c`. The config path and other values cannot inject shell commands.
+- **Private log**: connection output (which can contain SAML tokens) is written to `${XDG_RUNTIME_DIR:-~/.cache}/mmu-vpn-tray/`, created with mode `0700` and the log with mode `0600`. It is opened with `O_NOFOLLOW` so another user cannot pre-create a symlink and redirect writes.
+- **Login URL allow-list**: before calling `xdg-open`, the tray accepts only `https://` URLs whose hostname matches the configured VPN host (`vpn.mmu.edu.my` by default). A forged log entry cannot open an arbitrary URL.
+- **Pinned sudo commands**: the sample sudoers rule allows only the exact `openfortivpn`, `pkill`, and `resolvectl` invocations the tray uses, and pins `openfortivpn` to a root-owned config. Avoid wildcards.
+- **Process matching**: the tray identifies `openfortivpn` by its exact process name and by the configured `-c` path, instead of treating any process with a similar name as the VPN.
+- **Single instance**: an advisory `flock` in the runtime directory prevents duplicate tray processes from fighting over the same VPN state.
+
+> [!NOTE]
+> `pkill -INT -x openfortivpn` is still system-wide because all VPN processes run as root. On a multi-user machine, disconnecting from one account can stop another account's openfortivpn process that uses the same config path.
+
+---
+
 ## License
 
-This project is licensed under the BSD 3-Clause License. See [LICENSE](file:///home/opal/Projects/mmu-vpn-tray/LICENSE) for details.
+This project is licensed under the BSD 3-Clause License. See [LICENSE](LICENSE) for details.

@@ -21,7 +21,6 @@ pkgbase = mmu-vpn-tray-git
 	provides = mmu-vpn-tray
 	conflicts = mmu-vpn-tray
 	backup = etc/openfortivpn/mmu-vpn.conf
-	backup = etc/sudoers.d/openfortivpn
 	source = mmu-vpn-tray-git::git+https://github.com/nawfalmrouyan/mmu-vpn-tray.git
 	sha256sums = SKIP
 

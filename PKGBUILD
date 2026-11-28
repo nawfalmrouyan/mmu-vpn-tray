@@ -1,6 +1,6 @@
 # Maintainer: Nawfal bin Mohmad Rouyan <https://github.com/nawfalmrouyan>
 pkgname=mmu-vpn-tray-git
-pkgver=0.0.1.r0.g95c074c
+pkgver=0.0.1.r1.g2568756
 pkgrel=1
 pkgdesc="Tray StatusNotifierItem for Multimedia University Fortinet SAML VPN (development git branch)"
 arch=('any')
@@ -30,6 +30,7 @@ optdepends=(
 )
 provides=('mmu-vpn-tray')
 conflicts=('mmu-vpn-tray')
+backup=('etc/openfortivpn/mmu-vpn.conf')
 install="mmu-vpn-tray.install"
 source=("${pkgname}::git+${url}.git")
 sha256sums=('SKIP')
@@ -56,6 +57,7 @@ package() {
     install -Dm644 mmu-vpn-tray/mmu-vpn-connected.svg "${pkgdir}/usr/share/icons/hicolor/scalable/apps/mmu-vpn-tray.svg"
 
     install -Dm644 openfortivpn/mmu-vpn.conf "${pkgdir}/etc/openfortivpn/mmu-vpn.conf"
-    install -Dm440 sudoers.d/openfortivpn "${pkgdir}/etc/sudoers.d/openfortivpn"
+    install -Dm644 openfortivpn/mmu-vpn.conf "${pkgdir}/usr/share/doc/mmu-vpn-tray/mmu-vpn.conf.example"
+    install -Dm644 sudoers.d/openfortivpn "${pkgdir}/usr/share/doc/mmu-vpn-tray/openfortivpn.sudoers.example"
     install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

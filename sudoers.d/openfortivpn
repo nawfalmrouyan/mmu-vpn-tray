@@ -1,8 +1,24 @@
 # Sudoers permissions for MMU VPN Tray
-# Allows managing openfortivpn, terminating the connection, and setting split-DNS routing without password prompt.
+#
+# SECURITY: passwordless sudo for openfortivpn is effectively root access.
+# openfortivpn can load a pppd plugin (`pppd-plugin`) and write files
+# (`pppd-log`) as root, so it must never read a config file that the invoking
+# user can modify. The rules below therefore pin openfortivpn to the
+# root-owned system config and to the exact arguments used by the tray.
+#
+# Do not add wildcards, and do not change -c to a path under a user's home
+# directory. If you use a custom config, make it root-owned and mode 0644.
+
+# Ignore user proxy settings: openfortivpn would otherwise route the VPN
+# handshake through a proxy controlled by the invoking user.
+Defaults!/usr/bin/openfortivpn env_keep -= "https_proxy http_proxy all_proxy HTTPS_PROXY HTTP_PROXY ALL_PROXY"
 
 # For members of the wheel group:
-%wheel ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my
+%wheel ALL=(root) NOPASSWD: /usr/bin/openfortivpn -c /etc/openfortivpn/mmu-vpn.conf --saml-login, \
+                            /usr/bin/pkill -INT -x openfortivpn, \
+                            /usr/bin/resolvectl domain ppp0 mmu.edu.my
 
 # Alternatively, for a specific user account (e.g. opal):
-# opal ALL=(root) NOPASSWD: /usr/bin/openfortivpn, /bin/openfortivpn, /usr/bin/pkill -INT openfortivpn, /bin/pkill -INT openfortivpn, /usr/bin/resolvectl domain ppp0 mmu.edu.my, /bin/resolvectl domain ppp0 mmu.edu.my
+# opal ALL=(root) NOPASSWD: /usr/bin/openfortivpn -c /etc/openfortivpn/mmu-vpn.conf --saml-login, \
+#                           /usr/bin/pkill -INT -x openfortivpn, \
+#                           /usr/bin/resolvectl domain ppp0 mmu.edu.my

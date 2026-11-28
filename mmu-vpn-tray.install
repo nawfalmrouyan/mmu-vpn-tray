@@ -3,31 +3,29 @@ post_install() {
 ================================================================================
 MMU VPN Tray - Post-Installation Setup
 ================================================================================
-The package installed the following system files:
+1. VPN Configuration:
+   The package installs a root-owned configuration at:
+     /etc/openfortivpn/mmu-vpn.conf
 
-  /etc/openfortivpn/mmu-vpn.conf   OpenFortiVPN configuration
-  /etc/sudoers.d/openfortivpn      Passwordless rules for openfortivpn,
-                                   pkill and resolvectl
+   The tray prefers this file so that passwordless sudo can safely pin
+   openfortivpn to a config the invoking user cannot modify. Do not make it
+   writable by your user account.
 
-1. Sudoers Permissions:
-   The sudoers rule applies to members of the 'wheel' group. Make sure your
-   user is in that group:
-     groups | grep -qw wheel || sudo usermod -aG wheel "$USER"
-   (Log out and back in for the group change to take effect.)
-
-   To allow a specific account instead, edit the file:
-     sudo visudo -f /etc/sudoers.d/openfortivpn
-
-   Verify the sudoers file:
-     sudo visudo -cf /etc/sudoers.d/openfortivpn
-
-2. Per-user Configuration (optional):
-   The tray uses /etc/openfortivpn/mmu-vpn.conf by default. To override it
-   for your user, copy it to your home directory:
+   For a per-user config (development/testing only), create:
      mkdir -p ~/.config/openfortivpn
-     cp /etc/openfortivpn/mmu-vpn.conf ~/.config/openfortivpn/mmu-vpn.conf
+     cp /usr/share/doc/mmu-vpn-tray/mmu-vpn.conf.example \
+        ~/.config/openfortivpn/mmu-vpn.conf
      chmod 600 ~/.config/openfortivpn/mmu-vpn.conf
-   ~/.config/openfortivpn/mmu-vpn.conf takes precedence when it exists.
+   Then point the tray at it with MMU_VPN_CONFIG and adjust the sudoers rule
+   below to that exact path. A user-writable config plus passwordless sudo is
+   equivalent to giving that user root access.
+
+2. Sudoers Permissions (required for openfortivpn, pkill & resolvectl):
+   Copy or link the sudoers snippet to /etc/sudoers.d/:
+     sudo install -Dm440 /usr/share/doc/mmu-vpn-tray/openfortivpn.sudoers.example \
+       /etc/sudoers.d/openfortivpn
+   Ensure your user is in the 'wheel' group or edit the rule for your username.
+   The rule deliberately allows only the exact commands the tray runs.
 
 3. Autostart in Hyprland (hyprlua):
    Add to your startup commands in ~/.config/hypr/hyprland.lua:
